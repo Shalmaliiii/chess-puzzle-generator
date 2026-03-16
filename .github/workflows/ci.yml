@@ -30,3 +30,6 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew build
+
+      - name: Build Docker image
+        run: docker build -t puzzle-generator .
