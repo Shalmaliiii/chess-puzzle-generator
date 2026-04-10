@@ -1,3 +1,7 @@
 spring:
   application:
     name: puzzle-service
+
+stockfish:
+  enabled: true
+  path: engine/stockfish

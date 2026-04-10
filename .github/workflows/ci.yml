@@ -2,9 +2,17 @@ name: Puzzle Generator CI
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - feature**
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - feature**
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   build:
@@ -19,9 +27,22 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: gradle
 
       - name: Grant execute permission for Gradle
         run: chmod +x gradlew
 
       - name: Build with Gradle
         run: ./gradlew build
+
+      - name: Login to registry
+        run: echo "${{ secrets.PUZZLE_SERVICE_SECRET }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Set lowercase repository owner
+        run: echo "OWNER_LOWERCASE=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
+      - name: Build Docker image
+        run: docker build -t ghcr.io/$OWNER_LOWERCASE/puzzle-service:latest .
+
+      - name: Push image
+        run: docker push ghcr.io/$OWNER_LOWERCASE/puzzle-service:latest

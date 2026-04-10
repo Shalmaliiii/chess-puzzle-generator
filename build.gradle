@@ -5,7 +5,6 @@ plugins {
 }
 
 group = 'com.puzzlegenerator.chess'
-version = '0.0.1-SNAPSHOT'
 description = 'Mate in N'
 
 java {
