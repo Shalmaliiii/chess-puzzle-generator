@@ -1,48 +1,37 @@
 package com.puzzlegenerator.chess.puzzle_service.service;
 
+import com.puzzlegenerator.chess.puzzle_service.uci.UciEngineIO;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
-
-import java.io.*;
 
 @Service
 @ConditionalOnProperty(name = "stockfish.enabled", havingValue = "true", matchIfMissing = true)
 public class StockfishService {
 
-    private static final Logger logger =
-            LoggerFactory.getLogger(StockfishService.class);
+    private static final Logger logger = LoggerFactory.getLogger(StockfishService.class);
 
     @Value("${stockfish.path}")
     private String stockfishPath;
 
-    private Process engineProcess;
-    private BufferedReader reader;
-    private BufferedWriter writer;
+    private UciEngineIO engine;
 
     @PostConstruct
     public void startEngine() throws Exception {
 
         logger.info("Starting Stockfish engine...");
 
-        ProcessBuilder processBuilder =
-                new ProcessBuilder(stockfishPath);
+        Process process = new ProcessBuilder(stockfishPath).start();
 
-        engineProcess = processBuilder.start();
-
-        if (!engineProcess.isAlive()) {
+        if (!process.isAlive()) {
             throw new IllegalStateException("Stockfish engine failed to start.");
         }
 
-        reader = new BufferedReader(
-                new InputStreamReader(engineProcess.getInputStream()));
-
-        writer = new BufferedWriter(
-                new OutputStreamWriter(engineProcess.getOutputStream()));
+        engine = new UciEngineIO(process);
 
         initializeEngine();
 
@@ -50,70 +39,30 @@ public class StockfishService {
     }
 
     private void initializeEngine() throws Exception {
+        engine.sendCommand("uci");
+        engine.waitFor("uciok");
 
-        sendCommand("uci");
-        waitFor("uciok");
-
-        sendCommand("isready");
-        waitFor("readyok");
-    }
-
-    private void sendCommand(String command) throws Exception {
-
-        logger.info("Sending command to Stockfish: {}", command);
-
-        writer.write(command);
-        writer.newLine();
-        writer.flush();
-    }
-
-    private void waitFor(String expected) throws Exception {
-
-        String line;
-
-        while ((line = reader.readLine()) != null) {
-
-            logger.debug("Stockfish: {}", line);
-
-            if (line.contains(expected)) {
-                logger.info("Received confirmation from engine: {}", expected);
-                return;
-            }
-        }
-
-        throw new IllegalStateException(
-                "Did not receive expected response from Stockfish: " + expected);
+        engine.sendCommand("isready");
+        engine.waitFor("readyok");
     }
 
     public String getBestMove(String fen) throws Exception {
 
         logger.info("Analyzing position: {}", fen);
-        sendCommand("ucinewgame");
-        sendCommand("position fen " + fen);
-        sendCommand("go depth 15");
+        engine.sendCommand("ucinewgame");
+        engine.sendCommand("position fen " + fen);
+        engine.sendCommand("go depth 15");
 
-        String line;
-
-        while ((line = reader.readLine()) != null) {
-
-            logger.debug("Stockfish: {}", line);
-
-            if (line.startsWith("bestmove")) {
-                logger.info("Best move found: {}", line);
-                return line;
-            }
-        }
-
-        return "No move found";
+        String line = engine.readUntil(l -> l.startsWith("bestmove"));
+        logger.info("Best move found: {}", line);
+        return line;
     }
 
     @PreDestroy
     public void shutdown() {
-
         logger.info("Shutting down Stockfish engine...");
-
-        if (engineProcess != null && engineProcess.isAlive()) {
-            engineProcess.destroy();
+        if (engine != null) {
+            engine.close();
         }
     }
 }
