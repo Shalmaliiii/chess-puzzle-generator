@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.util.regex.Pattern;
 
 @Service
 @ConditionalOnProperty(name = "stockfish.enabled", havingValue = "true", matchIfMissing = true)
@@ -16,6 +17,15 @@ public class StockfishService {
 
     private static final Logger logger =
             LoggerFactory.getLogger(StockfishService.class);
+
+    /**
+     * Permissive FEN structural check: six space-separated fields where the
+     * piece placement uses only board characters, and no control/whitespace
+     * characters other than the field separators. This blocks newline or
+     * other UCI-control injection into the engine's stdin.
+     */
+    private static final Pattern FEN_PATTERN = Pattern.compile(
+            "^[pnbrqkPNBRQK1-8/]{1,71} [wb] (-|[KQkq]{1,4}) (-|[a-h][1-8]) \\d{1,3} \\d{1,4}$");
 
     @Value("${stockfish.path}")
     private String stockfishPath;
@@ -60,11 +70,19 @@ public class StockfishService {
 
     private void sendCommand(String command) throws Exception {
 
+        if (command == null || command.indexOf('\n') >= 0 || command.indexOf('\r') >= 0) {
+            throw new IllegalArgumentException("Illegal characters in Stockfish command");
+        }
+
         logger.info("Sending command to Stockfish: {}", command);
 
         writer.write(command);
         writer.newLine();
         writer.flush();
+    }
+
+    static boolean isValidFen(String fen) {
+        return fen != null && FEN_PATTERN.matcher(fen).matches();
     }
 
     private void waitFor(String expected) throws Exception {
@@ -85,7 +103,11 @@ public class StockfishService {
                 "Did not receive expected response from Stockfish: " + expected);
     }
 
-    public String getBestMove(String fen) throws Exception {
+    public synchronized String getBestMove(String fen) throws Exception {
+
+        if (!isValidFen(fen)) {
+            throw new IllegalArgumentException("Invalid FEN string");
+        }
 
         logger.info("Analyzing position: {}", fen);
         sendCommand("ucinewgame");
