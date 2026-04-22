@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.util.regex.Pattern;
 
 @Service
 @ConditionalOnProperty(name = "stockfish.enabled", havingValue = "true", matchIfMissing = true)
@@ -16,6 +17,20 @@ public class StockfishService {
 
     private static final Logger logger =
             LoggerFactory.getLogger(StockfishService.class);
+
+    // Strict FEN validator: 8 ranks of piece placement, side to move, castling
+    // rights, en passant target, halfmove clock, fullmove number. Rejects any
+    // control characters (including CR/LF) that could be used to inject
+    // additional UCI commands into the engine's stdin.
+    private static final Pattern FEN_PATTERN = Pattern.compile(
+            "^([rnbqkpRNBQKP1-8]+/){7}[rnbqkpRNBQKP1-8]+ [wb] (-|[KQkq]{1,4}) (-|[a-h][36]) \\d{1,3} \\d{1,4}$");
+
+    static boolean isValidFen(String fen) {
+        if (fen == null || fen.length() > 100) {
+            return false;
+        }
+        return FEN_PATTERN.matcher(fen).matches();
+    }
 
     @Value("${stockfish.path}")
     private String stockfishPath;
@@ -86,6 +101,11 @@ public class StockfishService {
     }
 
     public String getBestMove(String fen) throws Exception {
+
+        if (!isValidFen(fen)) {
+            logger.warn("Rejected invalid FEN input");
+            throw new IllegalArgumentException("Invalid FEN");
+        }
 
         logger.info("Analyzing position: {}", fen);
         sendCommand("ucinewgame");
