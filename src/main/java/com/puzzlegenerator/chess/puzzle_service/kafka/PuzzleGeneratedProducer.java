@@ -2,13 +2,13 @@ package com.puzzlegenerator.chess.puzzle_service.kafka;
 
 import com.puzzlegenerator.chess.puzzle_service.dto.PuzzleGeneratedEvent;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-@ConditionalOnBean(KafkaTemplate.class)
+@ConditionalOnProperty(name = "spring.kafka.bootstrap-servers")
 public class PuzzleGeneratedProducer {
 
     private static final String TOPIC = "puzzle.generated";

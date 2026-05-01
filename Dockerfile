@@ -6,7 +6,7 @@ COPY gradle gradle
 COPY build.gradle settings.gradle ./
 COPY src src
 RUN chmod +x gradlew
-RUN ./gradlew bootJar --no-daemon -x test
+RUN ./gradlew bootJar --no-daemon -x test -Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000
 
 # Stage 2: Run
 FROM eclipse-temurin:25-jdk

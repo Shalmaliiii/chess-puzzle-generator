@@ -5,7 +5,7 @@ import com.puzzlegenerator.chess.puzzle_service.dto.PuzzleGenerateEvent;
 import com.puzzlegenerator.chess.puzzle_service.dto.PuzzleGeneratedEvent;
 import com.puzzlegenerator.chess.puzzle_service.generator.PuzzleGeneratorService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +13,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-@ConditionalOnBean(PuzzleGeneratorService.class)
+@ConditionalOnProperty(name = "spring.kafka.bootstrap-servers")
 public class PuzzleGenerateConsumer {
 
     private final PuzzleGeneratorService puzzleGeneratorService;
