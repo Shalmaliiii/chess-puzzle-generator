@@ -5,7 +5,7 @@ LABEL authors="Shalmali"
 WORKDIR /app
 
 # install stockfish
-RUN apt-get update && apt-get install -y stockfish
+RUN apt-get update && apt-get install -y stockfish && rm -rf /var/lib/apt/lists/*
 
 COPY build/libs/puzzle-service.jar app.jar
 
