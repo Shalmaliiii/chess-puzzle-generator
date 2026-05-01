@@ -42,7 +42,7 @@ public class EngineController {
 
         AnalysisResult result = stockfishService.analyzePosition(request.getFen(), 20);
 
-        boolean isBestMove = request.getMove().equals(result.getBestMove());
+        boolean isBestMove = result.getBestMove() != null && result.getBestMove().equals(request.getMove());
 
         ValidateMoveResponse response = ValidateMoveResponse.builder()
                 .isBestMove(isBestMove)

@@ -81,7 +81,7 @@ public class StockfishService {
         throw new IllegalStateException("Did not receive expected response from Stockfish: " + expected);
     }
 
-    public String getBestMove(String fen) throws Exception {
+    public synchronized String getBestMove(String fen) throws Exception {
         log.info("Analyzing position: {}", fen);
         sendCommand("ucinewgame");
         sendCommand("position fen " + fen);
@@ -98,7 +98,7 @@ public class StockfishService {
         return "No move found";
     }
 
-    public AnalysisResult analyzePosition(String fen, int depth) throws Exception {
+    public synchronized AnalysisResult analyzePosition(String fen, int depth) throws Exception {
         log.info("Analyzing position at depth {}: {}", depth, fen);
 
         sendCommand("ucinewgame");
@@ -152,7 +152,7 @@ public class StockfishService {
             String rest = infoLine.substring(idx + "score mate ".length());
             String mateValue = rest.split("\\s+")[0];
             int mateIn = Integer.parseInt(mateValue);
-            return "M" + Math.abs(mateIn);
+            return "M" + mateIn;
         }
         if (infoLine.contains("score cp ")) {
             int idx = infoLine.indexOf("score cp ");
