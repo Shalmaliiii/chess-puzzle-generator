@@ -13,7 +13,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-@ConditionalOnProperty(name = "spring.kafka.bootstrap-servers")
+@ConditionalOnProperty(name = {"stockfish.enabled", "spring.kafka.bootstrap-servers"})
 public class PuzzleGenerateConsumer {
 
     private final PuzzleGeneratorService puzzleGeneratorService;

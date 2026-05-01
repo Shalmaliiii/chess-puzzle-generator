@@ -3,14 +3,14 @@ package com.puzzlegenerator.chess.puzzle_service.controller;
 import com.puzzlegenerator.chess.puzzle_service.dto.*;
 import com.puzzlegenerator.chess.puzzle_service.service.StockfishService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
 @RequestMapping("/api/engine")
-@ConditionalOnBean(StockfishService.class)
+@ConditionalOnProperty(name = "stockfish.enabled", havingValue = "true", matchIfMissing = true)
 public class EngineController {
 
     private final StockfishService stockfishService;

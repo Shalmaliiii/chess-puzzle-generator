@@ -4,8 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(properties = {
-	"stockfish.enabled=false",
-	"spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration"
+	"stockfish.enabled=false"
 })
 class PuzzleServiceApplicationTests {
 

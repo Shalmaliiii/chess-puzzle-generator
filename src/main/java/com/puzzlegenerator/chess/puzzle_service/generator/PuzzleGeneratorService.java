@@ -4,7 +4,7 @@ import com.puzzlegenerator.chess.puzzle_service.dto.AnalysisResult;
 import com.puzzlegenerator.chess.puzzle_service.dto.GeneratedPuzzle;
 import com.puzzlegenerator.chess.puzzle_service.service.StockfishService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-@ConditionalOnBean(StockfishService.class)
+@ConditionalOnProperty(name = "stockfish.enabled", havingValue = "true", matchIfMissing = true)
 public class PuzzleGeneratorService {
 
     private final StockfishService stockfishService;
