@@ -82,7 +82,7 @@ public class PuzzleGeneratorService {
     private String extractSideToMove(String fen) {
         String[] parts = fen.split("\\s+");
         if (parts.length >= 2) {
-            return "w".equals(parts[1]) ? "white" : "black";
+            return "w".equals(parts[1]) ? "WHITE" : "BLACK";
         }
         return "unknown";
     }
